@@ -1,0 +1,9 @@
+SYNOPSIS
+--------
+
+Playing with TUN/TAP.
+
+REFERENCE
+---------
+
+C source largely copied from python-pytun (montag451/pytun) and sw17ch/tuntap.
