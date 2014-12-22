@@ -12,17 +12,20 @@ main = do
   host:_ <- hostAddresses <$> getHostByName "10.0.0.1"
   mask:_ <- hostAddresses <$> getHostByName "255.255.255.0"
 
-  dev <- T.new Nothing T.TAP True
-  T.setIpAndMask host mask dev
+  dev <- T.new Nothing T.TUN True
+
+  putStrLn $ "trying to bring it up..."
   T.bringUp dev
 
-  hDev <- T.toHandle dev
+  T.setIpAndMask host mask dev
+
   mtu <- T.getMtu dev
+  hDev <- T.toHandle dev
 
   putStrLn $ "created: " ++ show dev ++ ", mtu = " ++ show mtu
   pause "press any key to read once."
 
-  bs <- B.hGetSome hDev 1500
+  bs <- B.hGetSome hDev mtu
 
   putStrLn $ "Read " ++ show (B.length bs) ++ " bytes."
 

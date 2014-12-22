@@ -8,18 +8,23 @@
     strncpy(ifrVar.ifr_name, devName, IFNAMSIZ)
 
 static int
-interfaceIoctl(int cmd, struct ifreq *ifr) {
-    int ret;
+interfaceIoctl(unsigned long cmd, struct ifreq *ifr) {
+    int err;
     int sock;
 
-    sock = socket(AF_INET, SOCK_DGRAM, 0);
-    if (sock < 0) {
+    if ((sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
         perror("socket");
         return sock;
     }
-    ret = ioctl(sock, cmd, ifr);
-    close(sock);
-    return ret;
+    if ((err = ioctl(sock, cmd, ifr)) < 0) {
+        perror("interfaceIoctl.ioctl");
+        return err;
+    }
+    if ((err = close(sock)) < 0) {
+        perror("interfaceIoctl.close");
+        return err;
+    }
+    return 0;
 }
 
 int

@@ -24,10 +24,6 @@ executable tuntap-omni-exe
   default-language:    Haskell2010
   default-extensions: ForeignFunctionInterface, CPP
 
-  c-sources:          cbits/os-linux.c
-  cc-options:         -D LINUX
-  cpp-options:        -DCALLCONV=ccall
-
 
 library
   exposed-modules:     Network.TunTap.Omni
@@ -44,8 +40,10 @@ library
   if os(linux)
     c-sources:        cbits/os-linux.c
     build-depends:    unix >= 2.7
+    cc-options:       -D LINUX
 
   if os(darwin)
     c-sources:        cbits/os-darwin.c
     build-depends:    unix >= 2.7
+    cc-options:       -D BSD
 
