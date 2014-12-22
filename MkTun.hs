@@ -31,8 +31,6 @@ main = do
   mtu <- T.getMtu dev
 
   putStrLn $ "created: " ++ show dev ++ ", mtu = " ++ show mtu
-  pause "press any key to start tunneling."
-
   hDev <- T.toHandle dev
   runTun action (read portS) hDev mtu
 
@@ -55,6 +53,7 @@ runTun "connect" port hDev mtu = do
 
 runLoop :: Handle -> Handle -> Int -> IO ()
 runLoop hPeer hDev mtu = do
+  putStrLn "[runLoop] started"
   t1 <- async $ forever runPeerToDev
   t2 <- async $ forever runDevToPeer
   void $ waitAnyCancel [t1, t2]
@@ -62,12 +61,15 @@ runLoop hPeer hDev mtu = do
   runPeerToDev = do
     sizeBs <- B.hGet hPeer 4
     let Right size = fromIntegral <$> S.runGet S.getWord32be sizeBs
+    putStrLn $ "[runPeerToDev] " ++ show size ++ " bytes"
     pkt <- B.hGet hPeer size
     B.hPut hDev pkt
 
   runDevToPeer = do
     pkt <- B.hGetSome hDev mtu
-    let sizeBs = S.runPut $ S.putWord32be $ fromIntegral $ B.length pkt
+    let pktLen = B.length pkt
+    putStrLn $ "[runDevToPeer] " ++ show pktLen ++ " bytes"
+    let sizeBs = S.runPut $ S.putWord32be $ fromIntegral pktLen
     B.hPut hPeer sizeBs
     B.hPut hPeer pkt 
 
