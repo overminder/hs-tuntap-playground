@@ -25,7 +25,7 @@ main = do
   hostAddr <- resolveHost vHost
   mask <- resolveHost "255.255.255.0"
 
-  dev <- T.new Nothing T.TAP True
+  dev <- T.new Nothing T.TUN True
   T.bringUp dev
   T.setIpAndMask hostAddr mask dev
   mtu <- T.getMtu dev
@@ -42,6 +42,7 @@ runTun "serve" port hDev mtu = do
   (peer, _) <- accept s
   sClose s
   hPeer <- socketToHandle peer ReadWriteMode
+  hSetBuffering hPeer NoBuffering
   runLoop hPeer hDev mtu
 
 runTun "connect" port hDev mtu = do
@@ -49,6 +50,7 @@ runTun "connect" port hDev mtu = do
   peer <- mkTcpSock
   connect peer $ SockAddrInet (fromIntegral port) remote
   hPeer <- socketToHandle peer ReadWriteMode
+  hSetBuffering hPeer NoBuffering
   runLoop hPeer hDev mtu
 
 runLoop :: Handle -> Handle -> Int -> IO ()

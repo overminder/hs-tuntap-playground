@@ -57,7 +57,10 @@ bringUp (Device {..}) = withCString devName $ \ name_c -> do
   return ()
 
 toHandle :: Device -> IO Handle
-toHandle = fdToHandle . fromIntegral . devFd
+toHandle dev = do
+  h <- fdToHandle $ fromIntegral $ devFd dev
+  hSetBuffering h NoBuffering
+  return h
 
 setIpAndMask :: HostAddress -> HostAddress -> Device -> IO ()
 setIpAndMask ip mask (Device {..}) = withCString devName $ \ name_c -> do
