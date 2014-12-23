@@ -22,8 +22,8 @@ foreign import ccall safe "os.h tunAlloc" tunAlloc_c
 foreign import ccall safe "os.h tunBringUp" tunBringUp_c
   :: CString -> IO Int
 
-foreign import ccall safe "os.h tunSetIpAndMask" tunSetIpAndMask_c
-  :: CString -> Word32 -> Word32 -> IO Int
+foreign import ccall safe "os.h tunSetIpMaskDst" tunSetIpMaskDst_c
+  :: CString -> Word32 -> Word32 -> Word32 -> IO Int
 
 foreign import ccall safe "os.h tunGetMtu" tunGetMtu_c
   :: CString -> Ptr CInt -> IO Int
@@ -62,11 +62,10 @@ toHandle dev = do
   hSetBuffering h NoBuffering
   return h
 
-setIpAndMask :: HostAddress -> HostAddress -> Device -> IO ()
-setIpAndMask ip mask (Device {..}) = withCString devName $ \ name_c -> do
-  0 <- tunSetIpAndMask_c name_c ip mask
+setIpMaskDst :: HostAddress -> HostAddress -> HostAddress -> Device -> IO ()
+setIpMaskDst ip mask dst (Device {..}) = withCString devName $ \ name_c -> do
+  0 <- tunSetIpMaskDst_c name_c ip mask dst
   return ()
-
 
 getMtu :: Device -> IO Int
 getMtu (Device {..}) = withCString devName $ \ name_c -> do

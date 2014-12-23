@@ -66,7 +66,7 @@ tunBringUp(const char *dev)
 }
 
 int
-tunSetIpAndMask(const char *dev, uint32_t ip, uint32_t mask)
+tunSetIpMaskDst(const char *dev, uint32_t ip, uint32_t mask, uint32_t dst)
 {
     struct ifaliasreq ifra;
     struct sockaddr_in *sin;
@@ -85,8 +85,14 @@ tunSetIpAndMask(const char *dev, uint32_t ip, uint32_t mask)
     sin->sin_len = sizeof(ifra.ifra_mask);
     sin->sin_addr.s_addr = mask;
 
-    if ((err = interfaceIoctl(SIOCSIFADDR, (struct ifreq *) &ifra)) < 0) {
-        perror("tunSetIpAndMask: SIOCAIFADDR");
+    // XXX: broadaddr === dstaddr?
+    sin = (struct sockaddr_in *) &ifra.ifra_broadaddr;
+    sin->sin_family = AF_INET;
+    sin->sin_len = sizeof(ifra.ifra_broadaddr);
+    sin->sin_addr.s_addr = dst;
+
+    if ((err = interfaceIoctl(SIOCAIFADDR, (struct ifreq *) &ifra)) < 0) {
+        perror("tunSetIpMaskDst: SIOCAIFADDR");
         return err;
     }
 

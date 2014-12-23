@@ -20,14 +20,15 @@ resolveHost name = do
   return addr
 
 main = do
-  [action, vHost, portS] <- getArgs
+  [action, vHost, vDst, portS] <- getArgs
 
   hostAddr <- resolveHost vHost
   mask <- resolveHost "255.255.255.0"
+  dstAddr <- resolveHost vDst
 
   dev <- T.new Nothing T.TUN True
   T.bringUp dev
-  T.setIpAndMask hostAddr mask dev
+  T.setIpMaskDst hostAddr mask dstAddr dev
   mtu <- T.getMtu dev
 
   putStrLn $ "created: " ++ show dev ++ ", mtu = " ++ show mtu

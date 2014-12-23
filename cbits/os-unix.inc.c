@@ -41,3 +41,21 @@ tunGetMtu(const char *dev, int *mtu)
     return 0;
 }
 
+#define MAKE_SET_INET_ADDR(funName, ifrField, ioctlCmd) \
+static int \
+funName(const char *dev, uint32_t inetAddr) \
+{ \
+    INIT_IFR(ifr, dev); \
+    struct sockaddr_in *sin; \
+ \
+    sin = (struct sockaddr_in *) &ifr.ifrField; \
+    sin->sin_family = AF_INET; \
+    sin->sin_addr.s_addr = inetAddr; \
+ \
+    if ((err = interfaceIoctl(ioctlCmd, &ifr)) < 0) { \
+        perror(#funName ": ioctl set s_addr"); \
+        return err; \
+    } \
+ \
+    return 0; \
+}

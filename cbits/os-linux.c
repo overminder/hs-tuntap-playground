@@ -70,35 +70,20 @@ tunBringUp(const char *dev) {
     return 0;
 }
 
-#define MAKE_SET_INET_ADDR(funName, ifrField, ioctlCmd) \
-static int \
-funName(const char *dev, uint32_t inetAddr) \
-{ \
-    INIT_IFR(ifr, dev); \
-    struct sockaddr_in *sin; \
- \
-    sin = (struct sockaddr_in *) &ifr.ifrField; \
-    sin->sin_family = AF_INET; \
-    sin->sin_addr.s_addr = inetAddr; \
- \
-    if ((err = interfaceIoctl(ioctlCmd, &ifr)) < 0) { \
-        perror(#funName ": ioctl set s_addr"); \
-        return err; \
-    } \
- \
-    return 0; \
-}
-
 MAKE_SET_INET_ADDR(tunSetIp,   ifr_addr,    SIOCSIFADDR)
 MAKE_SET_INET_ADDR(tunSetMask, ifr_netmask, SIOCSIFNETMASK)
+MAKE_SET_INET_ADDR(tunSetDst, ifr_dstaddr, SIOCSIFDSTADDR)
 
 int
-tunSetIpAndMask(const char *dev, uint32_t ip, uint32_t mask) {
+tunSetIpAndMask(const char *dev, uint32_t ip, uint32_t mask, uint32_t dst) {
     int err;
     if ((err = tunSetIp(dev, ip)) < 0) {
         return err;
     }
     if ((err = tunSetMask(dev, mask)) < 0) {
+        return err;
+    }
+    if ((err = tunSetDst(dev, dst)) < 0) {
         return err;
     }
     return 0;
