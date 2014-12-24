@@ -28,6 +28,7 @@ foreign import ccall safe "os.h tunSetIpMaskDst" tunSetIpMaskDst_c
 foreign import ccall safe "os.h tunGetMtu" tunGetMtu_c
   :: CString -> Ptr CInt -> IO Int
 
+-- XXX: Not considering finalization ATM
 data Device
   = Device {
     devType :: DeviceType,

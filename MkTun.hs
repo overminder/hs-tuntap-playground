@@ -20,20 +20,24 @@ resolveHost name = do
   return addr
 
 main = do
-  [action, vHost, vDst, portS] <- getArgs
+  args <- getArgs
+  case args of
+    [action, portS, vHost, vDst] -> do
+      hostAddr <- resolveHost vHost
+      mask <- resolveHost "255.255.255.0"
+      dstAddr <- resolveHost vDst
 
-  hostAddr <- resolveHost vHost
-  mask <- resolveHost "255.255.255.0"
-  dstAddr <- resolveHost vDst
+      dev <- T.new Nothing T.TUN True
+      T.bringUp dev
+      T.setIpMaskDst hostAddr mask dstAddr dev
+      mtu <- T.getMtu dev
 
-  dev <- T.new Nothing T.TUN True
-  T.bringUp dev
-  T.setIpMaskDst hostAddr mask dstAddr dev
-  mtu <- T.getMtu dev
+      putStrLn $ "created: " ++ show dev ++ ", mtu = " ++ show mtu
+      hDev <- T.toHandle dev
+      runTun action (read portS) hDev mtu
 
-  putStrLn $ "created: " ++ show dev ++ ", mtu = " ++ show mtu
-  hDev <- T.toHandle dev
-  runTun action (read portS) hDev mtu
+    _ -> do
+      putStrLn "Usage: <program> serve|connect port addr dstAddr"
 
 runTun :: String -> Int -> Handle -> Int -> IO ()
 runTun "serve" port hDev mtu = do
@@ -64,14 +68,14 @@ runLoop hPeer hDev mtu = do
   runPeerToDev = do
     sizeBs <- B.hGet hPeer 4
     let Right size = fromIntegral <$> S.runGet S.getWord32be sizeBs
-    putStrLn $ "[runPeerToDev] " ++ show size ++ " bytes"
+    --putStrLn $ "[runPeerToDev] " ++ show size ++ " bytes"
     pkt <- B.hGet hPeer size
     B.hPut hDev pkt
 
   runDevToPeer = do
     pkt <- B.hGetSome hDev mtu
     let pktLen = B.length pkt
-    putStrLn $ "[runDevToPeer] " ++ show pktLen ++ " bytes"
+    --putStrLn $ "[runDevToPeer] " ++ show pktLen ++ " bytes"
     let sizeBs = S.runPut $ S.putWord32be $ fromIntegral pktLen
     B.hPut hPeer sizeBs
     B.hPut hPeer pkt 

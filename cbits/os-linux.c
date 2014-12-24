@@ -72,10 +72,10 @@ tunBringUp(const char *dev) {
 
 MAKE_SET_INET_ADDR(tunSetIp,   ifr_addr,    SIOCSIFADDR)
 MAKE_SET_INET_ADDR(tunSetMask, ifr_netmask, SIOCSIFNETMASK)
-MAKE_SET_INET_ADDR(tunSetDst, ifr_dstaddr, SIOCSIFDSTADDR)
+MAKE_SET_INET_ADDR(tunSetDst,  ifr_dstaddr, SIOCSIFDSTADDR)
 
 int
-tunSetIpAndMask(const char *dev, uint32_t ip, uint32_t mask, uint32_t dst) {
+tunSetIpMaskDst(const char *dev, uint32_t ip, uint32_t mask, uint32_t dst) {
     int err;
     if ((err = tunSetIp(dev, ip)) < 0) {
         return err;
